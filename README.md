@@ -2,7 +2,7 @@
 
 [![OpenCode](https://img.shields.io/badge/OpenCode-Configuration-blue)](https://opencode.ai)
 [![Plugin](https://img.shields.io/badge/Plugin-warp--dev-green)](https://github.com/warp-dot-dev/opencode-warp)
-[![Agents](https://img.shields.io/badge/Agents-9-orange)]()
+[![Agents](https://img.shields.io/badge/Agents-10-orange)]()
 [![Skills](https://img.shields.io/badge/Skills-10-purple)]()
 [![Commands](https://img.shields.io/badge/Commands-4-yellow)]()
 
@@ -23,7 +23,7 @@
 
 This configuration transforms OpenCode into a **multi-agent development system** with:
 
-- **9 specialized agents** organized around a research → plan → review → implement → verify pipeline
+- **10 specialized agents** organized around a research → plan → review → implement → verify pipeline
 - **10 skills** covering browser automation, frontend best practices (Angular, React, NestJS), testing (Jest, Karma, Playwright), PR review, and token-efficient communication
 - **4 lane-based commands** (`/quick`, `/medium`, `/full`, `/debug`) that route work through the orchestrator with appropriate rigor
 - **Token compression** via the `caveman` skill for efficient agent-to-agent communication
@@ -41,10 +41,17 @@ User Request
          │
          │
          ▼                               
-┌──────────┐  ┌──────────────┐  ┌──────────────────┐
-│ research │  │ planning     │→ │ reviewer         │
-│  agent   │→ │   agent      │← │    agent         │
-└──────────┘  └──────┬───────┘  └──────────────────┘
+┌──────────┐  ┌──────────────┐
+│ research │  │ research-fast│
+│  agent   │  │   agent      │
+└────┬─────┘  └──────┬───────┘
+     │               │
+     └───────┬───────┘
+             ▼
+     ┌──────────────┐  ┌──────────────────┐
+     │ planning     │→ │ reviewer         │
+     │   agent      │← │    agent         │
+     └──────┬───────┘  └──────────────────┘
                      │
                      ▼
               ┌──────────────┐   ┌──────────────────┐
@@ -125,9 +132,10 @@ This configuration lives in `~/.config/opencode`. To apply it:
 ~/.config/opencode/
 ├── opencode.json              # Main config: agents, permissions, plugin
 ├── tui.json                   # TUI settings
-├── agents/                    # Agent definitions (9 agents)
+├── agents/                    # Agent definitions (10 agents)
 │   ├── orchestrator-agent.md
 │   ├── research-agent.md
+│   ├── research-fast-agent.md
 │   ├── planning-agent.md
 │   ├── reviewer-agent.md
 │   ├── implementation-agent.md
@@ -166,11 +174,12 @@ The system uses a **pipeline architecture** where the orchestrator routes work t
 |-------|---------|-------|-----------------|
 | **orchestrator-agent** | Coordinates all specialists, manages lanes and approval gates | `qwen3.6-plus` | read, question; delegates to all other agents |
 | **research-agent** | Investigates code, patterns, dependencies, docs, root causes | `deepseek-v4-flash` | read, websearch, webfetch, question |
-| **planning-agent** | Creates implementation-ready plans with commit structure | `gpt-5.5` (xhigh) | read, edit, delegates to research-agent |
+| **research-fast-agent** | Quick local-only file mapping and test-context discovery (no web access) | `deepseek-v4-flash-free` | read-only, local-only |
+| **planning-agent** | Creates implementation-ready plans with commit structure | `deepseek-v4-pro` | read, edit, delegates to research-agent |
 | **reviewer-agent** | Adversarial stress-testing of plans before implementation | `glm-5.1` | read, git diff/status/rg, question |
 | **implementation-agent** | Executes approved plans step-by-step, production-ready code | `kimi-k2.6` | read, edit, bash (ask), question |
 | **test-fixer-agent** | Diagnoses and repairs failing tests with minimal changes | `deepseek-v4-pro` | read, edit, bash, question |
-| **verifier-agent** | Post-implementation audit against approved plan | `gpt-5.5` (xhigh) | read, git diff/status/rg, question |
+| **verifier-agent** | Post-implementation audit against approved plan | `deepseek-v4-pro` | read, git diff/status/rg, question |
 
 ### Specialized Agents
 
@@ -247,12 +256,15 @@ All commands run through `orchestrator-agent` as subtasks and follow this patter
       "temperature": 0.1
     },
     "planning-agent": {
-      "model": "openai/gpt-5.5",
-      "temperature": 0.1,
-      "variant": "xhigh"
+      "model": "opencode-go/deepseek-v4-pro",
+      "temperature": 0.1
     },
     "research-agent": {
       "model": "opencode-go/deepseek-v4-flash",
+      "temperature": 0.1
+    },
+    "research-fast-agent": {
+      "model": "opencode/deepseek-v4-flash-free",
       "temperature": 0.1
     },
     "reviewer-agent": {
@@ -272,9 +284,8 @@ All commands run through `orchestrator-agent` as subtasks and follow this patter
       "temperature": 0.1
     },
     "verifier-agent": {
-      "model": "openai/gpt-5.5",
-      "temperature": 0.1,
-      "variant": "xhigh"
+      "model": "opencode-go/deepseek-v4-pro",
+      "temperature": 0.1
     },
     "prompt-agent": {
       "model": "opencode-go/qwen3.6-plus",
@@ -303,12 +314,13 @@ All commands run through `orchestrator-agent` as subtasks and follow this patter
 | Role | Model | Rationale |
 |------|-------|-----------|
 | **Orchestration** | `qwen3.6-plus` | Strong reasoning for routing decisions |
-| **Planning** | `gpt-5.5` (xhigh) | Best-in-class for structured plan generation |
+| **Planning** | `deepseek-v4-pro` | Best-in-class for structured plan generation |
 | **Research** | `deepseek-v4-flash` | Fast, cost-effective codebase exploration |
+| **Research Fast** | `deepseek-v4-flash-free` | Local-only quick scouting, no web access |
 | **Review** | `glm-5.1` | Strong adversarial analysis |
 | **Implementation** | `kimi-k2.6` | Efficient code generation |
 | **Test Fixing** | `deepseek-v4-pro` | Deep reasoning for test diagnostics |
-| **Verification** | `gpt-5.5` (xhigh) | Thorough audit capability |
+| **Verification** | `deepseek-v4-pro` | Thorough audit capability |
 | **Prompt Engineering** | `qwen3.6-plus` | Good at meta-reasoning about prompts |
 
 ### Permission System
