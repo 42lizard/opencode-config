@@ -10,12 +10,15 @@
       "temperature": 0.1
     },
     "planning-agent": {
-      "model": "openai/gpt-5.5",
-      "temperature": 0.1,
-      "variant": "xhigh"
+      "model": "opencode-go/deepseek-v4-pro",
+      "temperature": 0.1
     },
     "research-agent": {
       "model": "opencode-go/deepseek-v4-flash",
+      "temperature": 0.1
+    },
+    "research-fast-agent": {
+      "model": "opencode/deepseek-v4-flash-free",
       "temperature": 0.1
     },
     "reviewer-agent": {
@@ -35,9 +38,8 @@
       "temperature": 0.1
     },
     "verifier-agent": {
-      "model": "openai/gpt-5.5",
-      "temperature": 0.1,
-      "variant": "xhigh"
+      "model": "opencode-go/deepseek-v4-pro",
+      "temperature": 0.1
     },
     "prompt-agent": {
       "model": "opencode-go/qwen3.6-plus",

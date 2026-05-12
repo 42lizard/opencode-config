@@ -19,7 +19,8 @@ Workflow:
    - If it is broader, riskier, or better handled as bug work, say so and recommend `/medium`, `/full`, or `/debug` instead of forcing it through this lane.
 
 2. Minimal context gathering
-   - Delegate to `research-agent` only when you need exact file targets, symbols, existing patterns, or validation hints.
+   - Delegate to `research-fast-agent` for quick file mapping or test-context discovery when you need exact file targets, symbols, existing patterns, or validation hints.
+   - Escalate to `research-agent` only if fast research returns insufficient findings.
    - Keep the research narrow and avoid broader planning work.
 
 3. Tiny plan

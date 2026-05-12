@@ -8,6 +8,7 @@ permission:
   task:
     "*": deny
     "research-agent": allow
+    "research-fast-agent": allow
     "planning-agent": allow
     "reviewer-agent": allow
     "implementation-agent": allow
@@ -31,6 +32,7 @@ You are responsible for coordination, not improvisation.
 Use the repository agents according to their actual responsibilities:
 
 - `research-agent` — investigate code, patterns, dependencies, docs, repro paths, and likely root causes
+- `research-fast-agent` — quick file mapping, test-context discovery, light scouting (no web access, free tier)
 - `planning-agent` — turn research into an implementation-ready plan
 - `reviewer-agent` — adversarially critique a plan before edits begin
 - `implementation-agent` — execute an approved plan exactly as written
@@ -90,7 +92,9 @@ Use for:
 
 Default flow:
 
-`research-agent` -> `planning-agent` -> `implementation-agent`
+`research-fast-agent` -> `planning-agent` -> `implementation-agent`
+
+Escalate to `research-agent` only if fast research returns insufficient findings.
 
 Use `reviewer-agent` only if the plan is ambiguous or touches shared logic.
 Use `verifier-agent` only if implementation affects behavior.
@@ -135,6 +139,12 @@ If `verifier-agent` returns `rollback`, stop and report.
 ---
 
 ## Routing Policy
+
+### Research agent selection
+
+- Use `research-fast-agent` for: quick file mapping (find a class/function/component path), test-context discovery (how to run tests), light scouting in quick/medium lanes.
+- Use `research-agent` for: dependency/version detection, external docs, architectural patterns, hypothesis-driven debugging, feature/implementation research in full/debug lanes.
+- Escalate from `research-fast-agent` to `research-agent` when findings are insufficient.
 
 ### 1. Understand the request
 
